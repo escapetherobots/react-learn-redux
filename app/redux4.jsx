@@ -1,4 +1,5 @@
 var redux = require('redux');
+var axios = require('axios');
 
 // name reducers & action generators
 //======================================
@@ -91,13 +92,68 @@ var removeMovie = (num) => {
 };
 
 
+// map reducers & action generators
+//======================================
+
+// map reducer
+var mapReducer = (state = {isFetching: false, url: undefined}, action) => {
+	switch(action.type){
+		case 'START_LOCATION_FETCH':
+			return {
+				isFetching: true,
+				url: undefined
+
+			};
+
+		case 'COMPLETE_LOCATION_FETCH':
+			return {
+				isFetching: false,
+				url: action.url
+			};
+
+		default: 
+			return state;
+	}
+
+};
+
+// action generator:
+var startLocationFetch = () => {
+	return {
+		type: "START_LOCATION_FETCH",
+
+	};
+};
+
+var completeLocationFetch = (url) => {
+	return {
+		type: "COMPLETE_LOCATION_FETCH",
+		url
+	};
+};
+
+var fetchLocation = () => {
+	store.dispatch(startLocationFetch());
+
+	axios.get('http://ipinfo.io').then(function(res){
+		var loc = res.data.loc;
+		var baseUrl = 'http://maps.google.com?q=';
+
+		store.dispatch(completeLocationFetch(baseUrl+loc));
+	});
+
+	
+}
+
+
 //tools and store
 var reduxTools = redux.compose(window.__REDUX_DEVTOOLS_EXTENSION__  ? window.__REDUX_DEVTOOLS_EXTENSION__() : f => f );
 
 var reducer = redux.combineReducers({
 	name: nameReducer,
 	hobbies: hobbiesReducer,
-	movies: moviesReducer
+	movies: moviesReducer,
+	map: mapReducer
 });
 
 var store = redux.createStore(reducer, reduxTools);
@@ -105,14 +161,19 @@ var store = redux.createStore(reducer, reduxTools);
 //unsubscribe and subscribe
 var unsubscribe = store.subscribe(() => {
 	var state = store.getState();
-	console.log(state);
-	document.getElementById('app').innerHTML = state.name;
+	//document.getElementById('app').innerHTML = state.name;
+	if (state.map.isFetching){
+		document.getElementById('app').innerHTML = 'loading...';
+	} else if (state.map.url) {
+		console.log(state.map.url);
+		document.getElementById('app').innerHTML = '<a target="_blank" href="' + state.map.url + '">Link</a>';
+	}
 
 });
 
 //unsubscribe();
 
-
+fetchLocation();
 
 store.dispatch({
 	type: "ADD_HOBBY",
