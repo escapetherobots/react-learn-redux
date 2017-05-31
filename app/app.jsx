@@ -29,4 +29,5 @@ ReactDOM.render(
 // require('./redux-example.jsx');
 //require('./redux-example2.jsx');
 //require('./redux-todo-example.jsx');
-require('./redux3.jsx');
+//require('./redux3.jsx');
+require('./redux4.jsx');
